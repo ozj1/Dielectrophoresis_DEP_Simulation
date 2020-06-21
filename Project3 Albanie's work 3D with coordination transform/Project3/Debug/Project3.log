@@ -1,0 +1,10 @@
+﻿  Source.cpp
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(98): warning C4101: 'EE0': unreferenced local variable
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(130): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(336): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(405): warning C4552: '+': result of expression not used
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(479): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(567): warning C4805: '==': unsafe mix of type 'double' and type 'bool' in operation
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(587): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\ozj1_admin\source\repos\project3 albanie's work 3d with coordination transform\project3\source.cpp(95): warning C4715: 'calcDistance': not all control paths return a value
+  Project3.vcxproj -> C:\Users\ozj1_admin\source\repos\Project3 Albanie's work 3D with coordination transform\Debug\Project3.exe
