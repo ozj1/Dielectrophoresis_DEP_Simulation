@@ -103,7 +103,14 @@ double Upfde(double Es)
 	//return 2. * pi * em*CMf *pow((Di*1e-6 / 2.), 3.)*pow(Es, 2.);
 
 }
+struct xy
+{
+	double x;
+	double y;
+
+};
 class Energy_extraction {
+public:// for error
 
 	//Energy_extraction(float tempS) {
 	//	sd = tempS;
@@ -111,13 +118,13 @@ class Energy_extraction {
 	//	generator = new Random();
 	//}
 
-	double coordinate_transform(double Wcell_input, double Wcell_large, double x, double y, )
+	xy coordinate_transform(double Wcell_input, double Wcell_large, double x, double y)
 	{
-		double Di = 20., d=30.; //diameter of each post, tilted distance between posts  
+		double Di = 20., d = 30.; //diameter of each post, tilted distance between posts  
 		//vrtical or horizental distance between two posts
-		double dist_posts=(Di+d)/pow(2,0.5);
+		double dist_posts = (Di + d) / pow(2, 0.5);
 		//X_cyl1 is th x coordinate of the bottom and left post in the raw data, same for Y_cyl1
-		double X_cyl1=20+ Wcell_input/2.-dist_posts, Y_cyl1 = 20 + Wcell_input / 2. - dist_posts;
+		double X_cyl1 = 20 + Wcell_input / 2. - dist_posts, Y_cyl1 = 20 + Wcell_input / 2. - dist_posts;
 
 		//y is y in our large map, y_raw is what we have from data text file 
 		//cell 1, 2,3,4
@@ -129,7 +136,7 @@ class Energy_extraction {
 				y = y + Y_cyl1;
 			}//cell 2
 			else if (x >= Wcell_large / 4. && x < Wcell_large / 2.) {
-				x = -x;x=x+Wcell_large/2.+X_cyl1;
+				x = -x; x = x + Wcell_large / 2. + X_cyl1;
 				y = y + Y_cyl1;
 
 			}//cell 3
@@ -157,17 +164,17 @@ class Energy_extraction {
 				y = y - Wcell_large / 4. + Y_cyl1;
 			}//cell 7
 			else if (x >= Wcell_large / 2. && x < 3.*Wcell_large / 4.) {
-				x = -x; x = x +3* Wcell_large / 4. + X_cyl1;
+				x = -x; x = x + 3 * Wcell_large / 4. + X_cyl1;
 				y = y - Wcell_large / 4. + Y_cyl1;
 			}//cell 8
 			else if (x >= 3.*Wcell_large / 4. && x <= Wcell_large) {
-				x = x - 3*Wcell_large / 4. + X_cyl1;
+				x = x - 3 * Wcell_large / 4. + X_cyl1;
 				y = y - Wcell_large / 4. + Y_cyl1;
 
 			}
 		}
 		//cell 9, 10,11,12
-		else if (y >= Wcell_large / 2. && y < 3*Wcell_large / 4.) {
+		else if (y >= Wcell_large / 2. && y < 3 * Wcell_large / 4.) {
 			//cell 9
 			if (x >= 0 && x < Wcell_large / 4.) {
 				x = x + X_cyl1;
@@ -190,12 +197,12 @@ class Energy_extraction {
 			}
 		}
 		//cells 13, 14,15,16
-		else if (y >= 3 * Wcell_large / 4. && y < Wcell_large ) {
+		else if (y >= 3 * Wcell_large / 4. && y < Wcell_large) {
 
 			//cell 13
 			if (x >= 0 && x < Wcell_large / 4.) {
 				x = -x; x = x + Wcell_large / 4. + X_cyl1;
-				y = y - 3*Wcell_large / 4. + Y_cyl1;
+				y = y - 3 * Wcell_large / 4. + Y_cyl1;
 			}//cell 14
 			else if (x >= Wcell_large / 4. && x < Wcell_large / 2.) {
 				x = x - Wcell_large / 4. + X_cyl1;
@@ -211,11 +218,77 @@ class Energy_extraction {
 
 			}
 		}
+		xy result = { x, y };
+		return result;
 	}
-
 	
 
 
+	double Energy_Value_Extaction(double DataNum, double DataSection, double th, double Xd, double Yd, double Zd, vector<double> X, vector<double> Y, vector<double> Z, vector<double> E, double data_lx, double data_ly, double data_lz, double d_lx)
+	{
+		//in here we relate the value of Xd and Yd to our data coordinate
+		Xd = coordinate_transform(data_lx, d_lx, Xd, Yd).x;
+		Yd = coordinate_transform(data_lx, d_lx, Xd, Yd).y;
+		
+		//th=threshold
+		double z0 = 4.001;//new added z0=length of th post we don't want the value of particles b compared to the E norm values of post areas 0<z<z0 
+		double xdd, Xdd, xdd_, Xdd_, ydd, Ydd, ydd_, Ydd_, zdd, Zdd_;//Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
+		int mm = 0; double Ed = 0.0;//Ed=Ederivd
+
+		int i = 0, o = 0, imin, kmin, imax, kmax;
+		xdd = Xd - th, Xdd = Xd, xdd_ = Xd, Xdd_ = Xd + th; //Ydd = Yd - th, Ydd_ = Yd + th; Zdd = Zd - 2., Zdd_ = Zd + 2.;
+		ydd = Yd - th, Ydd = Yd, ydd_ = Yd, Ydd_ = Yd + th;
+		zdd = -0.0001, Zdd_ = Zd + 0.0001;//some points have values only for z=0 or lz=8, so we need to cover all the range from 0 to lz
+		
+		if (xdd < 0.) { xdd = xdd + data_lx, Xdd = data_lx + 0.0001, xdd_ = -0.0001; } if (ydd < 0.) { ydd = ydd + data_ly, Ydd = data_ly + 0.0001, ydd_ = -0.0001; }// if (zdd < 0.) { zdd = -0.0001; };
+		if (Xdd_ > data_lx) { xdd_ = -0.0001, Xdd = data_lx + 0.0001, Xdd_ = Xdd_ - data_lx; } if (Ydd_ > data_ly) { ydd_ = -0.0001, Ydd = data_ly + 0.0001, Ydd_ = Ydd_ - data_ly; }// if (Zdd_ > lz) { Zdd_ = lz + 0.0001; };
+		
+		double A1 = 100, A2 = 100, A3 = 100;//A1 and A2 are the colsest and the second closest distance from the point (Xd, Yd, Zd), n1 and n2 are the index of these points
+		
+		int n1 = 1, n2 = 2, n3 = 3;
+		imax = DataNum, imin = 0;
+
+		if ((Xd - th) > 3 && (Xd + th) < (data_lx - 3)) {
+			imin = DataSection * int(Xd - th - 3), imax = DataSection * int(Xd + th + 3);//140062/70.71=1981  |3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
+		}
+
+		for (i = imin; i < imax; i++) {
+
+			
+			if ((X.at(i) >= xdd && X.at(i) <= Xdd) || (X.at(i) >= xdd_ && X.at(i) <= Xdd_))
+
+
+			{
+				
+				if ((Y.at(i) >= ydd && Y.at(i) <= Ydd) || (Y.at(i) >= ydd_ && Y.at(i) <= Ydd_))
+				{
+
+					
+					if (Z.at(i) > z0 && Z.at(i) <= (data_lz + 0.001))
+					{
+						mm++;
+
+						if (mm == 1) { A1 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), data_lx, data_ly), n1 = i; }
+						if (mm == 2) {
+							A2 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), data_lx, data_ly), n2 = i;;
+							if (A2 < A1) { A3 = A1, A1 = A2, A2 = A3, n3 = n1, n1 = n2, n2 = n3; }//now we know for sur that A1<A2
+						}
+						if (mm > 2) { //here we want to updat A1 and A2 to mak sure we'v got the closest points
+							A3 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), data_lx, data_ly), n3 = i;
+							if (A3 < A1) { A2 = A1, A1 = A3, n2 = n1, n1 = n3; }
+							else if ((A3 < A2) && (A3 >= A1)) { A2 = A3, n2 = n3; }
+						}
+						
+					}
+				}
+			}
+			
+		}
+		
+		return Ed = (E.at(n1) + E.at(n2)) / 2.;
+
+
+	}
 
 
 
@@ -234,7 +307,7 @@ int main() {
 		//Because of the above reason we generate a large set of numbers in normal distribution using Box-Miller approach
 
 	int i = 0, o = 0, imin, kmin, imax, kmax;
-	double lx, ly, lz;
+	double data_lx, data_ly, data_lz;
 	//if you have lj then you should decrease h to 0.00000005 to avoid overlap and shooting
 	//vector<double>  X, Y, Z, E;
 	vector<double> X, Y, Z, E;
@@ -257,7 +330,7 @@ int main() {
 	//totnum = xyz.totalnum;
 	//xvalnum = int(totnum/4)+10;
 	//N = xvalnum;
-
+	Energy_extraction energy_extraction;
 	//for (it = X.begin(); it != X.end(); ++it)	{	
 		//X.emplace(it + 5, xyz.xvalue[it]);
 		//X[i] = xyz.xvalue[i];
@@ -267,9 +340,15 @@ int main() {
 	//}
 	int DataNum = int(xyz.xvalue.size());
 
-	lx = xyz.xvalue[DataNum - 1], ly = lx, lz = *max_element(xyz.zvalue.begin(), xyz.zvalue.end());//* to get the value of max not index;
-	int DataSection = int(DataNum / lx);//140062/70.71=1981  |3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
+	data_lx = xyz.xvalue[DataNum - 1], data_ly = data_lx, data_lz = *max_element(xyz.zvalue.begin(), xyz.zvalue.end());//* to get the value of max not index;
+	int DataSection = int(DataNum / data_lx);//140062/70.71=1981  |3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
 
+
+	double Diameter = 20;
+	double Distance = 30;
+	double bb = (Diameter + Distance) / 1.414;
+	double d_lx = (Diameter + Distance) * 2 * pow(2, 0.5);//d_lx = dsired - lx meaning the large sim box;
+	double d_ly = d_lx, d_lz= data_lz;
 	for (int i = 0; i < DataNum; i++) {
 		X.push_back(xyz.xvalue[i]);
 		Y.push_back(xyz.yvalue[i]);
@@ -277,130 +356,12 @@ int main() {
 		E.push_back(xyz.Enorm[i]);
 	}
 
-	//cout << "totnum" << X[0] << "\n";
-
-	//for (i = 0; i < N; i++) {
-//	cout << X[i] << setw(23) << Y[i] << setw(23) << Z[i] << setw(23) << E[i] << "\n";
-//}
-// what is the bst value of E for x=7, y=7, z=2.5 74.83172348670516         64.58981633479176        0  
-	double Diameter = 20;
-	double Distance = 30;
-	double bb = (Diameter + Distance) / 1.414;
-	double Wcell = 30 + (Diameter + Distance)*1.414;
-	double Xd, Yd, Zd, xdd, Xdd, xdd_, Xdd_, ydd, Ydd, ydd_, Ydd_, zdd, Zdd_;//Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
-	Xd = 35.35, Yd = 35.35, Zd = 7;
-	//Xdd = Xd, Ydd = Yd, Zdd = Zd;
-
-	//if (Xd*0.96 < 1) { Xdd = 0; }if (Yd*0.96 < 1) { Ydd = 0; }if (Zd*0.96 < 1) { Zdd = 0; }
+	
+	double Xd, Yd, Zd, z0 = 4.001, th = 3.;//th=threshold, Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
+	
 	int mm = 0; double Ed = 0.0;//Ed=Ederivd
 
-	//diffrnt ways of accssing dif elements of a vctor in  a loop
-	//for (auto it = X.begin(); it != X.end(); ++it) {
-		 //if (*it >= (Xdd * 0.86) && *it <= (Xd * 1.1)) {
-	//    }}
-	//pbc
-	double z0 = 4.001;//new added z0=length of th post we don't want the value of particles b compared to the E norm values of post areas 0<z<z0 
-	double th = 3.;//th=threshold
-	xdd = Xd - th, Xdd = Xd, xdd_ = Xd, Xdd_ = Xd + th; //Ydd = Yd - th, Ydd_ = Yd + th; Zdd = Zd - 2., Zdd_ = Zd + 2.;
-	ydd = Yd - th, Ydd = Yd, ydd_ = Yd, Ydd_ = Yd + th;
-	zdd = -0.0001, Zdd_ = Zd + 0.0001;//some points have values only for z=0 or lz=8, so we need to cover all the range from 0 to lz
-	if (xdd < 0.) { xdd = xdd + lx, Xdd = lx + 0.0001, xdd_ = -0.0001; } if (ydd < 0.) { ydd = ydd + ly, Ydd = ly + 0.0001, ydd_ = -0.0001; }// if (zdd < 0.) { zdd = -0.0001; };
-	if (Xdd_ > lx) { xdd_ = -0.0001, Xdd = lx + 0.0001, Xdd_ = Xdd_ - lx; } if (Ydd_ > ly) { ydd_ = -0.0001, Ydd = ly + 0.0001, Ydd_ = Ydd_ - ly; }// if (Zdd_ > lz) { Zdd_ = lz + 0.0001; };
-	double A1 = 100, A2 = 100, A3 = 100;//A1 and A2 are the colsest and the second closest distance from the point (Xd, Yd, Zd), n1 and n2 are the index of these points
-	int n1 = 1, n2 = 2, n3 = 3;
-	imax = DataNum, imin = 0;
-	for (i = imin; i < imax; i++) {
 
-		if ((Xd - th) > 3 && (Xd + th) < (lx - 3)) {
-			imin = DataSection * int(Xd - th - 3), imax = DataSection * int(Xd + th + 3);//140062/70.71=1981  |3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
-		}
-		if ((X.at(i) >= xdd && X.at(i) <= Xdd) || (X.at(i) >= xdd_ && X.at(i) <= Xdd_))
-
-
-		{
-			//if (X.at(i) >= Xdd && X.at(i) <= Xdd_) {
-			//if (Xdd < 0.) {Xdd = Xdd + lx;} if (Xdd_ > lx) {Xdd_ = Xdd_ - lx;}
-			if ((Y.at(i) >= ydd && Y.at(i) <= Ydd) || (Y.at(i) >= ydd_ && Y.at(i) <= Ydd_))
-			{
-
-				//if (Z.at(i) >= zdd && Z.at(i) <= Zdd_)
-				//{
-				if (Z.at(i) > z0 && Z.at(i) <= (lz + 0.001))
-				{
-					mm++;
-					//Ed += E.at(i);
-
-					if (mm == 1) { A1 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), lx, ly), n1 = i; }
-					if (mm == 2) {
-						A2 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), lx, ly), n2 = i;;
-						if (A2 < A1) { A3 = A1, A1 = A2, A2 = A3, n3 = n1, n1 = n2, n2 = n3; }//now we know for sur that A1<A2
-					}
-					if (mm > 2) { //here we want to updat A1 and A2 to mak sure we'v got the closest points
-						A3 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), lx, ly), n3 = i;
-						if (A3 < A1) { A2 = A1, A1 = A3, n2 = n1, n1 = n3; }
-						else if ((A3 < A2) && (A3 >= A1)) { A2 = A3, n2 = n3; }
-						Ed = (E.at(n1) + E.at(n2)) / 2.;
-					}
-					//cout << X.at(i) << "  " << Y.at(i) << "  " << E.at(i) << "\n";
-
-				//}
-				}
-			}
-		}
-		//		else if( X.at(i) >= Xdd_) {//we dont want to look at the data after xd +5 but we care about values before xd-5 as w want to reach them 
-
-		//			break;//as we know that xvalues are sorted and after the range we don't need to check other xvalues
-		//		}
-	}
-	//vector<double> wd;
-	//for (int i = 0; i < 151; i++) {
-	//	wd.push_back(X.at(3772 *i));
-
-	//}
-	double rrr, ggg = 3.0026567566352124e-15, ccc = 7.2306409941750015e-15;
-	rrr = Upfde(Ed);
-
-	if (ccc >= rrr) {
-		// false == 0 and true = !false
-		MetropolisMC = true;
-	}
-
-	else {
-		double P = exp(-(ggg - ccc) / (kBoltzmann*Temp));
-		//double P = exp(-(TotalEnergy[1] - TotalEnergy[0]) / (kBoltzmann*Temp));
-		rad = (double)fRand(0., 1.);
-		//Yes, the random number r should be less than or equal to p = exp(-Delta E/kT). This is right.
-		if (P >= rad) {
-			MetropolisMC = true;
-		}
-		else {
-			MetropolisMC = false;
-		}
-
-	}
-
-
-	//for (i = 0; i < numvalue-1; i++)
-	//{
-	//	if (X[i] >= (Xdd* 0.86) && X[i] <= (Xd * 1.1))
-	//	{
-	//		if (Y[i] >= (Ydd * 0.86) && Y[i] <= (Yd * 1.1))
-	//		{
-	//			if (Z[i] >= (Zdd * 0.86) && Z[i] <= (Zd * 1.1))
-	//			{
-
-	//				mm++;
-	//				Ed += E[i];
-	//				cout << X[i] << "  " << E[i] << "\n";
-	//			}
-	//		}
-	//	}
-	//	else {
-	//		break;//as we know that xvalues are sorted and after the range we don't need to check other xvalues
-	//	}
-	//}
-	//cout << mm << "   " << n1 << "   " << E.at(n1) << "   " << n2 << "   " << E.at(n2) << "   " << "ave=" << Ed << "  A1=  " << A1 << "  A2=  " << A2;
-	//cout << Ed << "ave=" << Ed<<"   "<< mm<< "   " << Ed/mm;
 
 	int const Pnum = 500;
 	int k = 0;
@@ -408,43 +369,19 @@ int main() {
 	int OverlapChance, ff = 0;
 
 	for (i = 0; i < Pnum; i++) {
-		Px[i][0] = (double)fRand(0., lx);
-		Py[i][0] = (double)fRand(0., ly);
+		Px[i][0] = (double)fRand(0., d_lx);
+		Py[i][0] = (double)fRand(0., d_ly);
 
 		//debugged: in direction of Z box will start from 0 upto lz not from -lz/2 upto lz/2
 		//new debugged: based on exp(-kappa * (z - (Di / 2.))) z cannot be lower than radius of particle 'cause it will pass the beneath wall which is not real
-		Pz[i][0] = (double)fRand(z0 + 0.0001, lz);
+		Pz[i][0] = (double)fRand(z0 + 0.0001, d_lz);
 
-		//if (i <= 100) {
-		//	Px[i][0] = (double)fRand(Wcell / 2. + bb - (Diameter / 3.), Wcell / 2. + bb + (Diameter / 3.));
-		//	Py[i][0] = (double)fRand(Wcell / 2. + bb - (Diameter / 3.), Wcell / 2. + bb + (Diameter / 3.));
-		//	Pz[i][0] = (double)fRand(z0 + 0.0001, lz);
-		//}
-		//else if (i > 100 && i <= 200) {
-		//	Px[i][0] = (double)fRand(Wcell / 2. + bb - (Diameter / 3.), Wcell / 2. + bb + (Diameter / 3.));
-		//	Py[i][0] = (double)fRand(Wcell / 2. - bb - (Diameter / 3.), Wcell / 2. - bb + (Diameter / 3.));
-		//	Pz[i][0] = (double)fRand(z0 + 0.0001, lz);
-		//}
-		//else if (i > 200 && i <= 300) {
-		//	Px[i][0] = (double)fRand(Wcell / 2. - bb - (Diameter / 3.), Wcell / 2. - bb + (Diameter / 3.));
-		//	Py[i][0] = (double)fRand(Wcell / 2. + bb - (Diameter / 3.), Wcell / 2. + bb + (Diameter / 3.));
-		//	Pz[i][0] = (double)fRand(z0 + 0.0001, lz);
-		//}
-		//else if (i > 300 && i <= 400) {
-		//	Px[i][0] = (double)fRand(Wcell / 2. - bb - (Diameter / 3.), Wcell / 2. - bb + (Diameter / 3.));
-		//	Py[i][0] = (double)fRand(Wcell / 2. - bb - (Diameter / 3.), Wcell / 2. - bb + (Diameter / 3.));
-		//	Pz[i][0] = (double)fRand(z0 + 0.0001, lz);
-		//}
-		//else{
-		//	Px[i][0] = (double)fRand(Wcell / 2.  - (Diameter / 3.), Wcell / 2. + (Diameter / 3.));
-		//	Py[i][0] = (double)fRand(Wcell / 2.  - (Diameter / 3.), Wcell / 2. + (Diameter / 3.));
-		//	Pz[i][0] = (double)fRand(z0 + 0.0001, lz);
-		//}
+		
 
 		for (k = (i - 1); k >= 0; k--) {
 
 			int OverlapChance;
-			A = calcDistance(Px[i][0], Px[k][0], Py[i][0], Py[k][0], Pz[i][0], Pz[k][0], lx, ly);
+			A = calcDistance(Px[i][0], Px[k][0], Py[i][0], Py[k][0], Pz[i][0], Pz[k][0], d_lx, d_ly);
 			//B = 1.05*Di; we make it dimensionless
 			B = 1.05;
 			if (A > B) {
@@ -464,57 +401,7 @@ int main() {
 	for (k = 0; k < Pnum; k++) {
 		//first we need to extract enrgy value of each point from our text data
 		Xd = Px[k][0], Yd = Py[k][0], Zd = Pz[k][0];
-		//Xd = 6., Yd = Py[k][0], Zd = Pz[k][0];
-
-		xdd = Xd - th, Xdd = Xd, xdd_ = Xd, Xdd_ = Xd + th; //Ydd = Yd - th, Ydd_ = Yd + th; Zdd = Zd - 2., Zdd_ = Zd + 2.;
-		ydd = Yd - th, Ydd = Yd, ydd_ = Yd, Ydd_ = Yd + th;
-		zdd = -0.0001, Zdd_ = Zd + 0.0001;//some points have values only for z=0 or lz=8, so we need to cover all the range from 0 to lz
-		if (xdd < 0.) { xdd = xdd + lx, Xdd = lx + 0.0001, xdd_ = -0.0001; } if (ydd < 0.) { ydd = ydd + ly, Ydd = ly + 0.0001, ydd_ = -0.0001; }// if (zdd < 0.) { zdd = -0.0001; };
-		if (Xdd_ > lx) { xdd_ = -0.0001, Xdd = lx + 0.0001, Xdd_ = Xdd_ - lx; } if (Ydd_ > ly) { ydd_ = -0.0001, Ydd = ly + 0.0001, Ydd_ = Ydd_ - ly; }// if (Zdd_ > lz) { Zdd_ = lz + 0.0001; };
-		mm = 0;
-		imax = DataNum, imin = 0;
-		if ((Xd - th) > 3 && (Xd + th) < (lx - 3)) {
-			imin = DataSection * int(Xd - th - 3), imax = DataSection * int(Xd + th + 3);//3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
-		}
-		for (i = imin; i < imax; i++) {
-
-			if ((X.at(i) >= xdd && X.at(i) <= Xdd) || (X.at(i) >= xdd_ && X.at(i) <= Xdd_))
-			{
-				if ((Y.at(i) >= ydd && Y.at(i) <= Ydd) || (Y.at(i) >= ydd_ && Y.at(i) <= Ydd_))
-				{
-
-					//if (Z.at(i) >= zdd && Z.at(i) <= Zdd_)
-					//{
-					if (Z.at(i) > z0 && Z.at(i) <= (lz + 0.001))
-					{
-						mm++;
-						//Ed += E.at(i);
-
-						if (mm == 1) { A1 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), lx, ly), n1 = i; }
-						if (mm == 2) {
-							A2 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), lx, ly), n2 = i;;
-							if (A2 < A1) { A3 = A1, A1 = A2, A2 = A3, n3 = n1, n1 = n2, n2 = n3; }//now we know for sur that A1<A2
-						}
-						if (mm > 2) { //here we want to updat A1 and A2 to mak sure we'v got the closest points
-							A3 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), lx, ly), n3 = i;
-							if (A3 < A1) { A2 = A1, A1 = A3, n2 = n1, n1 = n3; }
-							else if ((A3 < A2) && (A3 >= A1)) { A2 = A3, n2 = n3; }
-
-						}
-
-						//}
-					}
-				}
-			}
-		}
-
-		//		else if( X.at(i) >= Xdd_) {//we dont want to look at the data after xd +5 but we care about values before xd-5 as w want to reach them 
-
-		//			break;//as we know that xvalues are sorted and after the range we don't need to check other xvalues
-		//		}
-
-
-		Ed = (E.at(n1) + E.at(n2)) / 2.;
+		Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
 		PEnergy[k][0] = Upfde(Ed);
 	}
 	int gh = 0;
@@ -530,7 +417,7 @@ int main() {
 		radnum = (double)fRand(0., 1.);
 		if (0. <= radnum && radnum < (1. / 3)) {
 
-			randdeltax = (double)fRand(-lx / 2.5, lx / 2.5);
+			randdeltax = (double)fRand(-d_lx / 2.5, d_lx / 2.5);
 			Px[randi][1] = Px[randi][0] + randdeltax;
 			Py[randi][1] = Py[randi][0];
 			Pz[randi][1] = Pz[randi][0];
@@ -538,14 +425,14 @@ int main() {
 		}
 		else if ((1. / 3) <= radnum && radnum < (2. / 3)) {
 
-			randdeltay = (double)fRand(-ly / 2.5, ly / 2.5);
+			randdeltay = (double)fRand(-d_ly / 2.5, d_ly / 2.5);
 			Px[randi][1] = Px[randi][0];
 			Py[randi][1] = Py[randi][0] + randdeltay;
 			Pz[randi][1] = Pz[randi][0];
 
 		}
 		else {
-			randdeltaz = (double)fRand(-(lz - z0) / 5., (lz - z0) / 5.);
+			randdeltaz = (double)fRand(-(d_lz - z0) / 5., (d_lz - z0) / 5.);
 			Px[randi][1] = Px[randi][0];
 			Py[randi][1] = Py[randi][0];
 			Pz[randi][1] = Pz[randi][0] + randdeltaz;
@@ -553,41 +440,41 @@ int main() {
 
 		//pbc
 		//pbc for x direction
-		if (Px[randi][1] > lx) {
+		if (Px[randi][1] > d_lx) {
 
-			Px[randi][1] = Px[randi][1] - lx;
+			Px[randi][1] = Px[randi][1] - d_lx;
 		}
 		else if (Px[randi][1] < 0.) {
 
-			Px[randi][1] = Px[randi][1] + lx;
+			Px[randi][1] = Px[randi][1] + d_lx;
 		}
 		//pbc for y direction
-		if (Py[randi][1] > ly) {
+		if (Py[randi][1] > d_ly) {
 
-			Py[randi][1] = Py[randi][1] - ly;
+			Py[randi][1] = Py[randi][1] - d_ly;
 		}
 		else if (Py[randi][1] < 0.) {
 
-			Py[randi][1] = Py[randi][1] + ly;
+			Py[randi][1] = Py[randi][1] + d_ly;
 		}
 
 		//pbc for z direction
-		if (Pz[randi][1] > lz) {
+		if (Pz[randi][1] > d_lz) {
 
 			//Pz[randi][1] = lz;
-			Pz[randi][1] = Pz[randi][1] - (lz - z0);
+			Pz[randi][1] = Pz[randi][1] - (d_lz - z0);
 		}
 		else if (Pz[randi][1] < z0) {
 			//this should not happen as we have always reulsion with the below surface 
 			//Pz[randi][1] = z0+0.001;
-			Pz[randi][1] = Pz[randi][1] + (lz - z0);
+			Pz[randi][1] = Pz[randi][1] + (d_lz - z0);
 
 		}
 		o = 0;
 		for (i = 0; i < Pnum; i++) {
 			ff = 0;
 			if (i != randi) {
-				A = calcDistance(Px[randi][1], Px[i][0], Py[randi][1], Py[i][0], Pz[randi][1], Pz[i][0], lx, ly);
+				A = calcDistance(Px[randi][1], Px[i][0], Py[randi][1], Py[i][0], Pz[randi][1], Pz[i][0], d_lx, d_ly);
 				//B = 1.05*Di; we make it dimensionless
 				B = 1.005;
 				if (A > B) {
@@ -605,62 +492,10 @@ int main() {
 				o++;
 
 				if (o == (Pnum - 1)) {
-					Xd = Px[randi][1], Yd = Py[randi][1], Zd = Pz[randi][1];
-					xdd = Xd - th, Xdd = Xd, xdd_ = Xd, Xdd_ = Xd + th; //Ydd = Yd - th, Ydd_ = Yd + th; Zdd = Zd - 2., Zdd_ = Zd + 2.;
-					ydd = Yd - th, Ydd = Yd, ydd_ = Yd, Ydd_ = Yd + th;
-					zdd = -0.0001, Zdd_ = Zd + 0.0001;//some points have values only for z=0 or lz=8, so we need to cover all the range from 0 to lz
-					if (xdd < 0.) { xdd = xdd + lx, Xdd = lx + 0.0001, xdd_ = -0.0001; } if (ydd < 0.) { ydd = ydd + ly, Ydd = ly + 0.0001, ydd_ = -0.0001; }// if (zdd < 0.) { zdd = -0.0001; };
-					if (Xdd_ > lx) { xdd_ = -0.0001, Xdd = lx + 0.0001, Xdd_ = Xdd_ - lx; } if (Ydd_ > ly) { ydd_ = -0.0001, Ydd = ly + 0.0001, Ydd_ = Ydd_ - ly; }// if (Zdd_ > lz) { Zdd_ = lz + 0.0001; };
-					mm = 0;
+					Xd = Px[randi][1], Yd = Py[randi][1], Zd = Pz[randi][1];				
 					//now a loop to find PEnergy value by searching through the Edelta2 values 
-					kmax = DataNum, kmin = 0;
-					if ((Xd - th) > 3 && (Xd + th) < (lx - 3)) {
-						kmin = DataSection * int(Xd - th - 3), kmax = DataSection * int(Xd + th + 3);
-					}
-					for (k = kmin; k < kmax; k++) {
-
-						if ((X.at(k) >= xdd && X.at(k) <= Xdd) || (X.at(k) >= xdd_ && X.at(k) <= Xdd_))
-						{
-							//if (X.at(i) >= Xdd && X.at(i) <= Xdd_) {
-							//if (Xdd < 0.) {Xdd = Xdd + lx;} if (Xdd_ > lx) {Xdd_ = Xdd_ - lx;}
-							if ((Y.at(k) >= ydd && Y.at(k) <= Ydd) || (Y.at(k) >= ydd_ && Y.at(k) <= Ydd_))
-							{
-
-								//if (Z.at(k) >= zdd && Z.at(k) <= Zdd_)
-								//{
-								if (Z.at(k) > z0 && Z.at(k) <= (lz + 0.001))
-								{
-									mm++;
-									//Ed += E.at(i);
-
-									if (mm == 1) { A1 = calcDistance(Xd, X.at(k), Yd, Y.at(k), Zd, Z.at(k), lx, ly), n1 = k; }
-									if (mm == 2) {
-										A2 = calcDistance(Xd, X.at(k), Yd, Y.at(k), Zd, Z.at(k), lx, ly), n2 = k;
-										if (A2 < A1) { A3 = A1, A1 = A2, A2 = A3, n3 = n1, n1 = n2, n2 = n3; }//now we know for sur that A1<A2
-									}
-									if (mm > 2) { //here we want to updat A1 and A2 to mak sure we'v got the closest points
-										A3 = calcDistance(Xd, X.at(k), Yd, Y.at(k), Zd, Z.at(k), lx, ly), n3 = k;
-										if (A3 < A1) { A2 = A1, A1 = A3, n2 = n1, n1 = n3; }
-										else if ((A3 < A2) && (A3 >= A1)) { A2 = A3, n2 = n3; }
-
-									}
-
-									//}
-								}
-							}
-
-						}
-
-						//		else if( X.at(i) >= Xdd_) {//we dont want to look at the data after xd +5 but we care about values before xd-5 as w want to reach them 
-
-						//			break;//as we know that xvalues are sorted and after the range we don't need to check other xvalues
-						//		}
-					}
-
-
-					Ed = (E.at(n1) + E.at(n2)) / 2.;
+					Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
 					PEnergy[randi][1] = Upfde(Ed);
-					//PEnergy[0][1] = Upfde(X[0][1], Z[0][1]);
 
 					if (PEnergy[randi][0] >= PEnergy[randi][1]) {
 						// false == 0 and true = !false
