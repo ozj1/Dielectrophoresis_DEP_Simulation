@@ -275,6 +275,7 @@ public:// for error
 						}
 						if (mm > 2) { //here we want to updat A1 and A2 to mak sure we'v got the closest points
 							A3 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), data_lx, data_ly), n3 = i;
+							double sd= X.at(i), sdd= Y.at(i), sddd= Z.at(i);
 							if (A3 < A1) { A2 = A1, A1 = A3, n2 = n1, n1 = n3; }
 							else if ((A3 < A2) && (A3 >= A1)) { A2 = A3, n2 = n3; }
 						}
@@ -314,8 +315,11 @@ int main() {
 	//creating an iterator for the vector
 	//vector<int>::iterator it;
 
-
-	ofstream out("out.txt");
+	bool plot_dep_enrgy = true;
+	bool Xvalues = false, Yvalues = false, Zvalues = false, DEPvalues = true;
+	double Zd_cross = 5;
+	//new point understood, if our data doesn't have enough resolution then we gt the same value of Ed for all Z values which can lead to inaccurate simulation results 
+	ofstream out("DEPvalues_z_5.txt");
 	//streambuf *coutbuf = std::cout.rdbuf();
 	cout.rdbuf(out.rdbuf());
 
@@ -357,9 +361,10 @@ int main() {
 	}
 
 	
-	double Xd, Yd, Zd, z0 = 4.001, th = 3.;//th=threshold, Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
+	double Xd=30, Yd = 30, Zd = 5, z0 = 4.001, th = 3.;//th=threshold, Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
 	
 	int mm = 0; double Ed = 0.0;//Ed=Ederivd
+	Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
 
 
 
@@ -367,116 +372,24 @@ int main() {
 	int k = 0;
 	double Px[Pnum][2], Py[Pnum][2], Pz[Pnum][2], PEnergy[Pnum][2], A, B;//Di is in 1um
 	int OverlapChance, ff = 0;
-
-	for (i = 0; i < Pnum; i++) {
-		Px[i][0] = (double)fRand(0., d_lx);
-		Py[i][0] = (double)fRand(0., d_ly);
-
-		//debugged: in direction of Z box will start from 0 upto lz not from -lz/2 upto lz/2
-		//new debugged: based on exp(-kappa * (z - (Di / 2.))) z cannot be lower than radius of particle 'cause it will pass the beneath wall which is not real
-		Pz[i][0] = (double)fRand(z0 + 0.0001, d_lz);
-
-		
-
-		for (k = (i - 1); k >= 0; k--) {
-
-			int OverlapChance;
-			A = calcDistance(Px[i][0], Px[k][0], Py[i][0], Py[k][0], Pz[i][0], Pz[k][0], d_lx, d_ly);
-			//B = 1.05*Di; we make it dimensionless
-			B = 1.05;
-			if (A > B) {
-				OverlapChance = false;
-			}
-			else {
-				OverlapChance = true;
-			}
-
-			if (OverlapChance == true) {
-				i--;
-				break;
-			}
-		}
-	}
-
-	for (k = 0; k < Pnum; k++) {
-		//first we need to extract enrgy value of each point from our text data
-		Xd = Px[k][0], Yd = Py[k][0], Zd = Pz[k][0];
-		Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
-		PEnergy[k][0] = Upfde(Ed);
-	}
-	int gh = 0;
-	int j = 0, ii = 0;
-	// NU is a counter to track usage of norm[] array and if it end, so we renew it
-	for (j = 0; j < jmax; j++) {
-		totaltrials++;
-		int min = 0, max = Pnum - 1;
-		rand() % (max - min + 1) + min;
-		int randi = rand() % (max - min + 1) + min;
-
-		double radnum, randdeltax, randdeltay, randdeltaz;
-		radnum = (double)fRand(0., 1.);
-		if (0. <= radnum && radnum < (1. / 3)) {
-
-			randdeltax = (double)fRand(-d_lx / 2.5, d_lx / 2.5);
-			Px[randi][1] = Px[randi][0] + randdeltax;
-			Py[randi][1] = Py[randi][0];
-			Pz[randi][1] = Pz[randi][0];
-
-		}
-		else if ((1. / 3) <= radnum && radnum < (2. / 3)) {
-
-			randdeltay = (double)fRand(-d_ly / 2.5, d_ly / 2.5);
-			Px[randi][1] = Px[randi][0];
-			Py[randi][1] = Py[randi][0] + randdeltay;
-			Pz[randi][1] = Pz[randi][0];
-
-		}
-		else {
-			randdeltaz = (double)fRand(-(d_lz - z0) / 5., (d_lz - z0) / 5.);
-			Px[randi][1] = Px[randi][0];
-			Py[randi][1] = Py[randi][0];
-			Pz[randi][1] = Pz[randi][0] + randdeltaz;
-		}
-
-		//pbc
-		//pbc for x direction
-		if (Px[randi][1] > d_lx) {
-
-			Px[randi][1] = Px[randi][1] - d_lx;
-		}
-		else if (Px[randi][1] < 0.) {
-
-			Px[randi][1] = Px[randi][1] + d_lx;
-		}
-		//pbc for y direction
-		if (Py[randi][1] > d_ly) {
-
-			Py[randi][1] = Py[randi][1] - d_ly;
-		}
-		else if (Py[randi][1] < 0.) {
-
-			Py[randi][1] = Py[randi][1] + d_ly;
-		}
-
-		//pbc for z direction
-		if (Pz[randi][1] > d_lz) {
-
-			//Pz[randi][1] = lz;
-			Pz[randi][1] = Pz[randi][1] - (d_lz - z0);
-		}
-		else if (Pz[randi][1] < z0) {
-			//this should not happen as we have always reulsion with the below surface 
-			//Pz[randi][1] = z0+0.001;
-			Pz[randi][1] = Pz[randi][1] + (d_lz - z0);
-
-		}
-		o = 0;
+	
+	if (plot_dep_enrgy==false) {
 		for (i = 0; i < Pnum; i++) {
-			ff = 0;
-			if (i != randi) {
-				A = calcDistance(Px[randi][1], Px[i][0], Py[randi][1], Py[i][0], Pz[randi][1], Pz[i][0], d_lx, d_ly);
+			Px[i][0] = (double)fRand(0., d_lx);
+			Py[i][0] = (double)fRand(0., d_ly);
+
+			//debugged: in direction of Z box will start from 0 upto lz not from -lz/2 upto lz/2
+			//new debugged: based on exp(-kappa * (z - (Di / 2.))) z cannot be lower than radius of particle 'cause it will pass the beneath wall which is not real
+			Pz[i][0] = (double)fRand(z0 + 0.0001, d_lz);
+
+
+
+			for (k = (i - 1); k >= 0; k--) {
+
+				int OverlapChance;
+				A = calcDistance(Px[i][0], Px[k][0], Py[i][0], Py[k][0], Pz[i][0], Pz[k][0], d_lx, d_ly);
 				//B = 1.05*Di; we make it dimensionless
-				B = 1.005;
+				B = 1.05;
 				if (A > B) {
 					OverlapChance = false;
 				}
@@ -485,87 +398,229 @@ int main() {
 				}
 
 				if (OverlapChance == true) {
-					j--;
-					ff = 0;
+					i--;
 					break;
-				}
-				o++;
-
-				if (o == (Pnum - 1)) {
-					Xd = Px[randi][1], Yd = Py[randi][1], Zd = Pz[randi][1];				
-					//now a loop to find PEnergy value by searching through the Edelta2 values 
-					Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
-					PEnergy[randi][1] = Upfde(Ed);
-
-					if (PEnergy[randi][0] >= PEnergy[randi][1]) {
-						// false == 0 and true = !false
-						MetropolisMC = true;
-					}
-
-					else {
-						double P = exp(-(PEnergy[randi][1] - PEnergy[randi][0]) / (kBoltzmann*Temp));
-						//double P = exp(-(TotalEnergy[1] - TotalEnergy[0]) / (kBoltzmann*Temp));
-						rad = (double)fRand(0., 1.);
-						//Yes, the random number r should be less than or equal to p = exp(-Delta E/kT). This is right.
-						if (P >= rad) {
-							MetropolisMC = true;
-						}
-						else {
-
-							MetropolisMC = false;
-						}
-
-					}
-
-
-					//checking having overlap with all previous made rectangles
-
-					if (MetropolisMC == true)
-					{
-						acceptedtrials++;
-
-						if (Px[randi][0] == Px[randi][1] && Py[randi][0] == Py[randi][1] && Pz[randi][0] == Pz[randi][1] && radnum < (2. / 3)) {
-
-							cout << "";
-						}
-
-						Px[randi][0] = Px[randi][1];
-						Py[randi][0] = Py[randi][1];
-						Pz[randi][0] = Pz[randi][1];
-						PEnergy[randi][0] = PEnergy[randi][1];
-
-
-
-						//cout the new positions
-						acceptancerate = acceptedtrials / totaltrials;
-						//cout << "\n\n " << "acceptance rate: " << acceptancerate << "\n\n";
-						int pr;
-						pr = fmod(j, (1000));
-						if (pr == 0) {
-							cout << "j=" << j << "\n\n";
-							for (i = 0; i < Pnum; i++) {
-								cout << "{RGBColor[224, 255, 255], Opacity[0.8], Sphere[{" << Px[i][0] << ", " << Py[i][0] << ", " << Pz[i][0] << "}, " << (Di / 2.) << "]},";
-							}
-						}
-						//if (pr == 0) {
-						//	gh++;
-						//	cout << (Pnum) << "\n " << gh << "\n";
-						//	for (i = 0; i < Pnum; i++) {
-
-						//		cout << " P" << (i+1) << " " << Px[i][0] << "    " << Py[i][0] << "    " << Pz[i][0] << "\n";
-
-						//	}
-
-						//}
-					}
-					else {
-						j--;
-					}
 				}
 			}
 		}
 
-	}
+		for (k = 0; k < Pnum; k++) {
+			//first we need to extract enrgy value of each point from our text data
+			Xd = Px[k][0], Yd = Py[k][0], Zd = Pz[k][0];
+			Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
+			PEnergy[k][0] = Upfde(Ed);
+		}
+		int gh = 0;
+		int j = 0, ii = 0;
+		// NU is a counter to track usage of norm[] array and if it end, so we renew it
+		for (j = 0; j < jmax; j++) {
+			totaltrials++;
+			int min = 0, max = Pnum - 1;
+			rand() % (max - min + 1) + min;
+			int randi = rand() % (max - min + 1) + min;
 
+			double radnum, randdeltax, randdeltay, randdeltaz;
+			radnum = (double)fRand(0., 1.);
+			if (0. <= radnum && radnum < (1. / 3)) {
+
+				randdeltax = (double)fRand(-d_lx / 2.5, d_lx / 2.5);
+				Px[randi][1] = Px[randi][0] + randdeltax;
+				Py[randi][1] = Py[randi][0];
+				Pz[randi][1] = Pz[randi][0];
+
+			}
+			else if ((1. / 3) <= radnum && radnum < (2. / 3)) {
+
+				randdeltay = (double)fRand(-d_ly / 2.5, d_ly / 2.5);
+				Px[randi][1] = Px[randi][0];
+				Py[randi][1] = Py[randi][0] + randdeltay;
+				Pz[randi][1] = Pz[randi][0];
+
+			}
+			else {
+				randdeltaz = (double)fRand(-(d_lz - z0) / 5., (d_lz - z0) / 5.);
+				Px[randi][1] = Px[randi][0];
+				Py[randi][1] = Py[randi][0];
+				Pz[randi][1] = Pz[randi][0] + randdeltaz;
+			}
+
+			//pbc
+			//pbc for x direction
+			if (Px[randi][1] > d_lx) {
+
+				Px[randi][1] = Px[randi][1] - d_lx;
+			}
+			else if (Px[randi][1] < 0.) {
+
+				Px[randi][1] = Px[randi][1] + d_lx;
+			}
+			//pbc for y direction
+			if (Py[randi][1] > d_ly) {
+
+				Py[randi][1] = Py[randi][1] - d_ly;
+			}
+			else if (Py[randi][1] < 0.) {
+
+				Py[randi][1] = Py[randi][1] + d_ly;
+			}
+
+			//pbc for z direction
+			if (Pz[randi][1] > d_lz) {
+
+				//Pz[randi][1] = lz;
+				Pz[randi][1] = Pz[randi][1] - (d_lz - z0);
+			}
+			else if (Pz[randi][1] < z0) {
+				//this should not happen as we have always reulsion with the below surface 
+				//Pz[randi][1] = z0+0.001;
+				Pz[randi][1] = Pz[randi][1] + (d_lz - z0);
+
+			}
+			o = 0;
+			for (i = 0; i < Pnum; i++) {
+				ff = 0;
+				if (i != randi) {
+					A = calcDistance(Px[randi][1], Px[i][0], Py[randi][1], Py[i][0], Pz[randi][1], Pz[i][0], d_lx, d_ly);
+					//B = 1.05*Di; we make it dimensionless
+					B = 1.005;
+					if (A > B) {
+						OverlapChance = false;
+					}
+					else {
+						OverlapChance = true;
+					}
+
+					if (OverlapChance == true) {
+						j--;
+						ff = 0;
+						break;
+					}
+					o++;
+
+					if (o == (Pnum - 1)) {
+						Xd = Px[randi][1], Yd = Py[randi][1], Zd = Pz[randi][1];
+						//now a loop to find PEnergy value by searching through the Edelta2 values 
+						Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
+						PEnergy[randi][1] = Upfde(Ed);
+
+						if (PEnergy[randi][0] >= PEnergy[randi][1]) {
+							// false == 0 and true = !false
+							MetropolisMC = true;
+						}
+
+						else {
+							double P = exp(-(PEnergy[randi][1] - PEnergy[randi][0]) / (kBoltzmann*Temp));
+							//double P = exp(-(TotalEnergy[1] - TotalEnergy[0]) / (kBoltzmann*Temp));
+							rad = (double)fRand(0., 1.);
+							//Yes, the random number r should be less than or equal to p = exp(-Delta E/kT). This is right.
+							if (P >= rad) {
+								MetropolisMC = true;
+							}
+							else {
+
+								MetropolisMC = false;
+							}
+
+						}
+
+
+						//checking having overlap with all previous made rectangles
+
+						if (MetropolisMC == true)
+						{
+							acceptedtrials++;
+
+							if (Px[randi][0] == Px[randi][1] && Py[randi][0] == Py[randi][1] && Pz[randi][0] == Pz[randi][1] && radnum < (2. / 3)) {
+
+								cout << "";
+							}
+
+							Px[randi][0] = Px[randi][1];
+							Py[randi][0] = Py[randi][1];
+							Pz[randi][0] = Pz[randi][1];
+							PEnergy[randi][0] = PEnergy[randi][1];
+
+
+
+							//cout the new positions
+							acceptancerate = acceptedtrials / totaltrials;
+							//cout << "\n\n " << "acceptance rate: " << acceptancerate << "\n\n";
+							int pr;
+							pr = fmod(j, (1000));
+							if (pr == 0) {
+								cout << "j=" << j << "\n\n";
+								for (i = 0; i < Pnum; i++) {
+									cout << "{RGBColor[224, 255, 255], Opacity[0.8], Sphere[{" << Px[i][0] << ", " << Py[i][0] << ", " << Pz[i][0] << "}, " << (Di / 2.) << "]},";
+								}
+							}
+							//if (pr == 0) {
+							//	gh++;
+							//	cout << (Pnum) << "\n " << gh << "\n";
+							//	for (i = 0; i < Pnum; i++) {
+
+							//		cout << " P" << (i+1) << " " << Px[i][0] << "    " << Py[i][0] << "    " << Pz[i][0] << "\n";
+
+							//	}
+
+							//}
+						}
+						else {
+							j--;
+						}
+					}
+				}
+			}
+
+		}
+	}
+	if (plot_dep_enrgy == true) {
+		//this part is just for plotting dep energy
+		int j = 0;
+		//out.open(generatefilename("Xvalues"));
+		double deltax = 2.;
+		double deltay = 2.;
+		Zd = Zd_cross;//the cross of Z that we want to see the results in
+
+		if (Xvalues==true) {
+			for (i = 0; (i*deltax) <= d_lx; i++) {
+				for (j = 0; (j*deltay) <= d_ly; j++) {
+					cout << i * deltax << "\n";
+				}
+			}
+		}
+		//out.close();
+
+		else if (Yvalues == true) {
+			//out.open(generatefilename("Yvalues"));
+			for (i = 0; (i*deltax) <= d_lx; i++) {
+				for (j = 0; (j*deltay) <= d_ly; j++) {
+					cout << j * deltay << "\n";
+				}
+			}
+		}
+		//out.close();
+		if (Zvalues == true) {
+
+			//out.open(generatefilename("Zvalues"));
+			for (i = 0; (i*deltax) <= d_lx; i++) {
+				for (k = 0; (k*deltay) <= d_ly; k++) {
+					cout << Zd << "\n";
+				}
+			}
+		}
+
+		//out.close();
+		if (DEPvalues == true) {
+
+			//out.open(generatefilename("DEPvalues"));
+			for (i = 0; (i*deltax) <= d_lx; i++) {
+				for (j = 0; (j*deltay) <= d_ly; j++) {
+					Xd = i * deltax, Yd = j * deltay;
+					Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
+					cout << Upfde(Ed) << "\n"; ;
+				}
+			}
+		}
+	}
 	return 0;
 }
