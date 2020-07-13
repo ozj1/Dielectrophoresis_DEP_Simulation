@@ -1,18 +1,20 @@
 ﻿  Source.cpp
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(98): warning C4101: 'EE0': unreferenced local variable
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(249): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(252): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(238): warning C4101: 'kmin': unreferenced local variable
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(238): warning C4101: 'kmax': unreferenced local variable
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(327): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(399): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(418): warning C4552: '+': result of expression not used
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(492): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(528): warning C4805: '==': unsafe mix of type 'double' and type 'bool' in operation
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(548): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(310): warning C4101: 'imax': unreferenced local variable
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(310): warning C4101: 'imin': unreferenced local variable
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(310): warning C4101: 'kmin': unreferenced local variable
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(310): warning C4101: 'kmax': unreferenced local variable
-c:\users\ozj1_admin\source\repos\github_albanie\dielectrophoresis_dep_simulation\project3\source.cpp(95): warning C4715: 'calcDistance': not all control paths return a value
-  Project3.vcxproj -> C:\Users\ozj1_admin\source\repos\github_Albanie\Dielectrophoresis_DEP_Simulation\Debug\Project3.exe
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(99): warning C4101: 'EE0': unreferenced local variable
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(248): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(273): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(276): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(279): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(237): warning C4101: 'kmin': unreferenced local variable
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(237): warning C4101: 'kmax': unreferenced local variable
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(355): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(427): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(446): warning C4552: '+': result of expression not used
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(520): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(556): warning C4805: '==': unsafe mix of type 'double' and type 'bool' in operation
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(576): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(337): warning C4101: 'imax': unreferenced local variable
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(337): warning C4101: 'imin': unreferenced local variable
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(337): warning C4101: 'kmin': unreferenced local variable
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(337): warning C4101: 'kmax': unreferenced local variable
+c:\users\ozj1_admin\source\repos\github_albanie for comsol xy slice data\dielectrophoresis_dep_simulation\project3\source.cpp(96): warning C4715: 'calcDistance': not all control paths return a value
+  Project3.vcxproj -> C:\Users\ozj1_admin\source\repos\github_Albanie for comsol xy slice data\Dielectrophoresis_DEP_Simulation\Debug\Project3.exe

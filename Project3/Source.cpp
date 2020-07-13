@@ -1,5 +1,6 @@
-//Monte Carlo code for  Albanie's work
+//Monte Carlo code for DEP posts work
 //In here we account for coordination transform as comsol simulation cannot handle more than 2 cylinder posts 
+//this code has been adjusted for comsol slice data  
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
@@ -40,7 +41,7 @@ triple getdata() {
 	double in = 0.0;
 
 	ifstream infile;
-	infile.open("albanie-2post-1MHz-z=30-v=40-finer-results-mesh1.85-05.txt");//remember to save a text file in exact location that "out" file exist  
+	infile.open("30zSlices-albanie-2post-1MHz-z=30-v=5-normal-results-mesh0.6-0.8.txt");//remember to save a text file in exact location that "out" file exist  
 	while (infile >> in) {
 		values.push_back(in);
 	}
@@ -124,7 +125,7 @@ public:// for error
 		//vrtical or horizental distance between two posts
 		double dist_posts = (Di + d) / pow(2, 0.5);
 		//X_cyl1 is th x coordinate of the bottom and left post in the raw data, same for Y_cyl1
-		double X_cyl1 = 20 + Wcell_input / 2. - dist_posts, Y_cyl1 = 20 + Wcell_input / 2. - dist_posts;
+		double X_cyl1 = 18 + Wcell_input / 2. - dist_posts, Y_cyl1 = 18 + Wcell_input / 2. - dist_posts;
 
 		//y is y in our large map, y_raw is what we have from data text file 
 		//cell 1, 2,3,4
@@ -221,7 +222,6 @@ public:// for error
 		xy result = { x, y };
 		return result;
 	}
-	
 
 
 	double Energy_Value_Extaction(double DataNum, double DataSection, double th, double Xd, double Yd, double Zd, vector<double> X, vector<double> Y, vector<double> Z, vector<double> E, double data_lx, double data_ly, double data_lz, double d_lx)
@@ -231,7 +231,6 @@ public:// for error
 		Yd = coordinate_transform(data_lx, d_lx, Xd, Yd).y;
 		
 		//th=threshold
-		double z0 = 4.001;//new added z0=length of th post we don't want the value of particles b compared to the E norm values of post areas 0<z<z0 
 		double xdd, Xdd, xdd_, Xdd_, ydd, Ydd, ydd_, Ydd_, zdd, Zdd_;//Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
 		int mm = 0; double Ed = 0.0;//Ed=Ederivd
 
@@ -248,24 +247,55 @@ public:// for error
 		int n1 = 1, n2 = 2, n3 = 3;
 		imax = DataNum, imin = 0;
 
-		if ((Xd - th) > 3 && (Xd + th) < (data_lx - 3)) {
-			imin = DataSection * int(Xd - th - 3), imax = DataSection * int(Xd + th + 3);//140062/70.71=1981  |3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
+		//here I have made the code compatable for the comsol slice data
+		double number_of_slides = 30;
+		double slide_space = round(DataNum / number_of_slides);
+		//Zd = 30;
+		double gh=round(Zd);
+		if (gh== round(5)) {
+			gh = round(6);
 		}
+		//int DataSection2 = int(slide_space / data_lx);//140062/70.71=1981  |3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
+
+		//double mnnm = gh* slide_space+DataSection2;
+		//double bbb = Z.at(mnnm);
+
+		//double mnnm1 = (gh-1) * slide_space + DataSection2 * int(Xd - th - 3);
+		//double bbb2 = Z.at(mnnm1);
+
+		//double mnnm2 = gh * slide_space + DataSection2 * int(Xd + th + 3);
+		//double bbb3 = Z.at(mnnm2), bbb4 = Z.at(slide_space), bbb5 = Z.at(2*slide_space), bbb6 = Z.at(3 * slide_space), bbb7 = Z.at(4 * slide_space), bbb8 = Z.at(5 * slide_space), bbb9 = Z.at(6 * slide_space);
+		//double bbb10 = Z.at(7*slide_space), bbb11 = Z.at(8 * slide_space), bbb12 = Z.at(9 * slide_space), bbb13 = Z.at(10 * slide_space), bbb14 = Z.at(11 * slide_space), bbb15 = Z.at(12 * slide_space);
+		//double bbb16 = Z.at(13*slide_space), bbb17 = Z.at(14 * slide_space), bbb18 = Z.at(15 * slide_space), bbb19 = Z.at(16 * slide_space), bbb20 = Z.at(17 * slide_space), bbb21 = Z.at(18* slide_space);
+		//double bbb00 = X.at(4 * slide_space);
+
+		if ((Zd - th) > 0 && (Zd + th) < (data_lz)) {
+			imin = (gh - th+1) * slide_space, imax = (gh + th-2) * slide_space;//140062/70.71=1981  |3781=567224/150, 565806 are the total # of data and we know x coordinate is sorted, by doing this we can make the code faster
+		}
+		else if (Zd <= th ) {
+			imax = (gh + th - 2) * slide_space;
+		}
+		else if (Zd >= (data_lz-th)) {
+			imin = (gh - th + 1) * slide_space;
+		}
+		//double bbb00 = Z.at(imin);
+		//double bbb01 = Z.at(imax-1);
 
 		for (i = imin; i < imax; i++) {
 
-			
-			if ((X.at(i) >= xdd && X.at(i) <= Xdd) || (X.at(i) >= xdd_ && X.at(i) <= Xdd_))
+			//if ((round(Z.at(i)) == gh) ) {
+
+				if ((X.at(i) >= xdd && X.at(i) <= Xdd) || (X.at(i) >= xdd_ && X.at(i) <= Xdd_))
 
 
-			{
-				
-				if ((Y.at(i) >= ydd && Y.at(i) <= Ydd) || (Y.at(i) >= ydd_ && Y.at(i) <= Ydd_))
 				{
 
-					
-					if (Z.at(i) > z0 && Z.at(i) <= (data_lz + 0.001))
+					if ((Y.at(i) >= ydd && Y.at(i) <= Ydd) || (Y.at(i) >= ydd_ && Y.at(i) <= Ydd_))
 					{
+
+
+						//if (Z.at(i) > z0 && Z.at(i) <= (data_lz + 0.001))
+						//{
 						mm++;
 
 						if (mm == 1) { A1 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), data_lx, data_ly), n1 = i; }
@@ -275,14 +305,15 @@ public:// for error
 						}
 						if (mm > 2) { //here we want to updat A1 and A2 to mak sure we'v got the closest points
 							A3 = calcDistance(Xd, X.at(i), Yd, Y.at(i), Zd, Z.at(i), data_lx, data_ly), n3 = i;
-							double sd= X.at(i), sdd= Y.at(i), sddd= Z.at(i);
+							double sd = X.at(i), sdd = Y.at(i), sddd = Z.at(i);
 							if (A3 < A1) { A2 = A1, A1 = A3, n2 = n1, n1 = n3; }
 							else if ((A3 < A2) && (A3 >= A1)) { A2 = A3, n2 = n3; }
 						}
-						
+
+						//}
 					}
 				}
-			}
+			//}
 			
 		}
 		
@@ -298,10 +329,6 @@ public:// for error
 };
 
 
-
-
-
-
 int main() {
 
 	//Based on statistical thermodynamics course (central limit theorem) ensemble average over time and position is the same, check it, so if you have random distribution over time steps it would be enough 
@@ -315,11 +342,11 @@ int main() {
 	//creating an iterator for the vector
 	//vector<int>::iterator it;
 
-	bool plot_dep_enrgy = true;
+	bool plot_dep_enrgy = false;
 	bool Xvalues = false, Yvalues = false, Zvalues = false, DEPvalues = true;
-	double Zd_cross = 5;
+	double Zd_cross = 6;
 	//new point understood, if our data doesn't have enough resolution then we gt the same value of Ed for all Z values which can lead to inaccurate simulation results 
-	ofstream out("DEPvalues_z_5.txt");
+	ofstream out("out.txt");
 	//streambuf *coutbuf = std::cout.rdbuf();
 	cout.rdbuf(out.rdbuf());
 
@@ -361,14 +388,14 @@ int main() {
 	}
 
 	
-	double Xd=30, Yd = 30, Zd = 5, z0 = 4.001, th = 3.;//th=threshold, Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
+	double Xd=30, Yd = 30, Zd = 5, z0 = 0., th = 3.;//th=threshold, Xd=Xdesird, Yd=Ydesired, Zd=Zdesired
 	
 	int mm = 0; double Ed = 0.0;//Ed=Ederivd
 	Ed = energy_extraction.Energy_Value_Extaction(DataNum, DataSection, th, Xd, Yd, Zd, X, Y, Z, E, data_lx, data_ly, data_lz, d_lx);
 
 
 
-	int const Pnum = 500;
+	int const Pnum = 1500;
 	int k = 0;
 	double Px[Pnum][2], Py[Pnum][2], Pz[Pnum][2], PEnergy[Pnum][2], A, B;//Di is in 1um
 	int OverlapChance, ff = 0;
